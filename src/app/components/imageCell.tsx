@@ -1,16 +1,28 @@
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { getTeamColor } from "@/lib/utils"
 import { X } from "lucide-react"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 type ImageCellProps = {
     keyString: string
     index: number
     teamOwner: string
+    color: string
+    isActive: boolean
+    onSuccess: () => void
+    className?: string
 }
 
-const ImageCell = ({ keyString, index, teamOwner }: ImageCellProps) => {
+const ImageCell = ({
+    keyString,
+    index,
+    teamOwner,
+    color,
+    isActive,
+    onSuccess,
+    className,
+}: ImageCellProps) => {
     // const [image, setImage] = useLocalStorage<string | null>(`image-${keyString}`, null)
     const [image, setImage] = useState<string | null>(null)
 
@@ -28,6 +40,10 @@ const ImageCell = ({ keyString, index, teamOwner }: ImageCellProps) => {
     }
 
     const handleClick = async () => {
+        if (!isActive) {
+            return
+        }
+
         try {
             const clipboardText = await navigator.clipboard.readText()
 
@@ -45,6 +61,7 @@ const ImageCell = ({ keyString, index, teamOwner }: ImageCellProps) => {
             }
 
             setImage(clipboardText)
+            onSuccess()
         } catch (err) {
             console.error("Failed to read clipboard:", err)
             alert("Failed to read clipboard. Please try again.")
@@ -53,7 +70,10 @@ const ImageCell = ({ keyString, index, teamOwner }: ImageCellProps) => {
 
     if (image) {
         return (
-            <div key={keyString} className="w-full h-full rounded-xl overflow-hidden relative">
+            <div
+                key={keyString}
+                className={cn("w-full h-full rounded-xl overflow-hidden relative", className)}
+            >
                 <button
                     type="button"
                     className="absolute w-6 h-6 rounded right-2 top-2 bg-red-200 border border-red-500 cursor-pointer"
@@ -85,7 +105,12 @@ const ImageCell = ({ keyString, index, teamOwner }: ImageCellProps) => {
     return (
         <Card
             key={keyString}
-            className="border-2 border-dashed border-slate-300 hover:border-slate-400 transition-colors cursor-pointer"
+            className={cn(
+                "w-full border-2 border-dashed border-slate-200 transition-colors",
+                isActive &&
+                    "border-2 border-dashed border-slate-400 hover:border-slate-600 cursor-pointer",
+                className
+            )}
             onClick={handleClick}
         >
             <CardContent className="flex items-center justify-center h-32">
@@ -94,9 +119,7 @@ const ImageCell = ({ keyString, index, teamOwner }: ImageCellProps) => {
                     <div className="text-sm">{teamOwner || `Team ${index + 1}`}</div>
                     <div className="mt-2">
                         <div
-                            className={`w-4 h-4 rounded-full mx-auto ${
-                                getTeamColor(index) || "bg-slate-300"
-                            }`}
+                            className={`w-4 h-4 rounded-full mx-auto ${color || "bg-slate-300"}`}
                         />
                     </div>
                 </div>

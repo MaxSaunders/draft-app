@@ -62,7 +62,7 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
                 {ownerError && <p className="text-red-500">{ownerError.message}</p>}
             </div>
             {canRemove && (
-                <div className="flex flex-col gap-2 w-full">
+                <div className="flex flex-col gap-2 min-w-44">
                     <button
                         type="button"
                         className="bg-red-500 text-white p-2 rounded-md cursor-pointer flex items-center justify-center gap-2"
@@ -86,7 +86,7 @@ export default function Home() {
     //     { teamName: "", teamOwner: "" },
     // ])
     const [draftName, setDraftName] = useState<string>("")
-    const [roundCount, setRoundCount] = useState<number>(1)
+    const [roundCount, setRoundCount] = useState<number>(5)
     // const [teams, setTeams] = useState<Team[]>([
     //     { teamName: "", teamOwner: "" },
     //     { teamName: "", teamOwner: "" },
@@ -95,6 +95,7 @@ export default function Home() {
         { teamName: "Max's Team", teamOwner: "Max" },
         { teamName: "Stephen's Team", teamOwner: "Stephen" },
         { teamName: "David's Team", teamOwner: "David" },
+        { teamName: "Jeremy's Team", teamOwner: "Jeremy" },
     ])
 
     const {

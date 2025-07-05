@@ -14,6 +14,10 @@ import Grid from "./components/grid"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { BiMinus, BiPlay, BiPlus, BiTrash } from "react-icons/bi"
 import { FiUsers } from "react-icons/fi"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 const teamSchema = z.object({
     teamName: z.string().min(1, { message: "Team name is required" }),
@@ -46,31 +50,31 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
     return (
         <div className="flex flex-row gap-2 items-end justify-center w-full">
             <div className="flex flex-col gap-2 w-full">
-                <label htmlFor="teamName">Team Name</label>
-                <input
+                <Label htmlFor="teamName">Team Name</Label>
+                <Input
                     {...register(`teams.${index}.teamName`)}
-                    className="border border-gray-300 rounded-md p-2"
+                    className="border border-gray-300 dark:border-gray-600 rounded-md p-2"
                 />
                 {nameError && <p className="text-red-500">{nameError.message}</p>}
             </div>
             <div className="flex flex-col gap-2 w-full">
-                <label htmlFor="teamOwner">Team Owner</label>
-                <input
+                <Label htmlFor="teamOwner">Team Owner</Label>
+                <Input
                     {...register(`teams.${index}.teamOwner`)}
-                    className="border border-gray-300 rounded-md p-2"
+                    className="border border-gray-300 dark:border-gray-600 rounded-md p-2"
                 />
                 {ownerError && <p className="text-red-500">{ownerError.message}</p>}
             </div>
             {canRemove && (
                 <div className="flex flex-col gap-2 min-w-44">
-                    <button
+                    <Button
                         type="button"
                         className="bg-red-500 text-white p-2 rounded-md cursor-pointer flex items-center justify-center gap-2"
                         onClick={() => removeTeam(index)}
                     >
                         <BiTrash className="w-4 h-4" />
                         Remove Team
-                    </button>
+                    </Button>
                 </div>
             )}
         </div>
@@ -158,49 +162,13 @@ export default function Home() {
                 className="flex flex-col items-center justify-center space-y-8 w-full"
             >
                 <div className="flex flex-col items-center justify-center gap-4 w-full">
-                    <h1 className="text-4xl font-bold">Draft Simulator</h1>
+                    <div className="relative flex flex-row items-center justify-center gap-4 w-full">
+                        <h1 className="text-4xl font-bold">Draft Simulator</h1>
+                        <div className="absolute right-0 top-0">
+                            <ThemeToggle />
+                        </div>
+                    </div>
                     <h2 className="text-xl">Setup your draft and manage teams</h2>
-                </div>
-                <div className="flex flex-col items-start gap-8 shadow-lg border border-gray-300 rounded-md p-6 w-full">
-                    <div className="flex flex-row items-center justify-start gap-4">
-                        <FiUsers className="w-6 h-6" />
-                        <h1 className="text-2xl font-bold">Draft Configuration</h1>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="name">Draft Name</label>
-                            <input
-                                className="border border-gray-300 rounded-md p-2"
-                                {...register("name")}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="roundCount">Round Count</label>
-                            <div className="flex flex-row items-center justify-start text-xl font-bold gap-4">
-                                <button
-                                    type="button"
-                                    className="border border-gray-300 text-black rounded-md flex items-center justify-center font-bold cursor-pointer h-11 w-11"
-                                    onClick={() =>
-                                        setValue("roundCount", Math.max(roundCountWatch - 1, 1))
-                                    }
-                                >
-                                    <BiMinus className="w-4 h-4" />
-                                </button>
-                                <div className="py-2 px-5 rounded-2xl bg-gray-200">
-                                    {roundCountWatch}
-                                </div>
-                                <button
-                                    type="button"
-                                    className="border border-gray-300 text-black rounded-md flex items-center justify-center font-bold cursor-pointer h-11 w-11"
-                                    onClick={() =>
-                                        setValue("roundCount", Math.min(roundCountWatch + 1, 100))
-                                    }
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 {hasErrors && (
                     <div className="flex flex-col items-center justify-center gap-8 shadow-lg border border-gray-300 rounded-md p-6">
@@ -209,20 +177,63 @@ export default function Home() {
                         </h2>
                     </div>
                 )}
+                <div className="flex flex-col items-start gap-8 shadow-lg border border-gray-300 rounded-md p-6 w-full">
+                    <div className="flex flex-row items-center justify-start gap-4">
+                        <FiUsers className="w-6 h-6" />
+                        <h1 className="text-2xl font-bold">Draft Configuration</h1>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="name">Draft Name</Label>
+                            <Input
+                                className="border border-gray-300 dark:border-gray-600 rounded-md p-2"
+                                {...register("name")}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="roundCount">Round Count</Label>
+                            <div className="flex flex-row items-center justify-start text-xl font-bold gap-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="cursor-pointer"
+                                    onClick={() =>
+                                        setValue("roundCount", Math.max(roundCountWatch - 1, 1))
+                                    }
+                                >
+                                    <BiMinus className="w-4 h-4" />
+                                </Button>
+                                <div className="py-2 px-5 rounded-2xl bg-gray-200 dark:bg-gray-800">
+                                    {roundCountWatch}
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="cursor-pointer"
+                                    onClick={() =>
+                                        setValue("roundCount", Math.min(roundCountWatch + 1, 100))
+                                    }
+                                >
+                                    +
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div className="flex flex-col items-center justify-center gap-8 shadow-lg border border-gray-300 rounded-md p-6 w-full">
                     <div className="flex flex-row items-center justify-between gap-4 w-full">
                         <div className="flex flex-row items-center justify-start gap-4">
                             <FiUsers className="w-6 h-6" />
                             <h1 className="text-2xl font-bold">Teams</h1>
                         </div>
-                        <button
+                        <Button
                             type="button"
                             className="bg-blue-500 text-white p-2 rounded-md px-3 font-bold cursor-pointer flex items-center justify-center gap-2"
                             onClick={addTeam}
                         >
                             <BiPlus className="w-4 h-4" />
                             <span>Add Team</span>
-                        </button>
+                        </Button>
                     </div>
 
                     {fields.map((field, index) => (
@@ -237,13 +248,14 @@ export default function Home() {
                         />
                     ))}
                 </div>
-                <button
+                <Button
                     type="submit"
-                    className="bg-green-600 text-white p-2 rounded-md px-5 py-3 font-bold cursor-pointer flex items-center justify-center gap-2"
+                    size="lg"
+                    className="text-lg bg-green-600 text-white p-2 rounded-md px-5 py-3 font-bold cursor-pointer flex items-center justify-center gap-2"
                 >
                     <BiPlay className="w-6 h-6" />
                     <span>Start Draft</span>
-                </button>
+                </Button>
             </form>
         </div>
     )

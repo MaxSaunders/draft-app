@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
     FieldArrayWithId,
     FieldErrors,
@@ -9,6 +9,7 @@ import {
     UseFormRegister,
 } from "react-hook-form"
 import { z } from "zod"
+import { useLocalStorage } from "usehooks-ts"
 
 import Grid from "./components/grid"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -29,6 +30,7 @@ type Team = z.infer<typeof teamSchema>
 const draftSchema = z.object({
     teams: z.array(teamSchema).min(2, { message: "Must have at least 2 teams" }),
     roundCount: z.number().min(1, { message: "Round count must be at least 1" }),
+    roundTimer: z.number().min(1, { message: "Round timer must be at least 1" }),
     name: z.string().min(1, { message: "Name is required" }),
 })
 
@@ -48,8 +50,8 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
     const ownerError = errors.teams?.[index]?.teamOwner
 
     return (
-        <div className="flex flex-row gap-2 items-end justify-center w-full">
-            <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-row gap-2 items-end justify-center w-full flex-wrap">
+            <div className="flex flex-col gap-2 min-w-44 flex-grow-2">
                 <Label htmlFor="teamName">Team Name</Label>
                 <Input
                     {...register(`teams.${index}.teamName`)}
@@ -57,7 +59,7 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
                 />
                 {nameError && <p className="text-red-500">{nameError.message}</p>}
             </div>
-            <div className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col gap-2 min-w-44 flex-grow-2">
                 <Label htmlFor="teamOwner">Team Owner</Label>
                 <Input
                     {...register(`teams.${index}.teamOwner`)}
@@ -66,7 +68,7 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
                 {ownerError && <p className="text-red-500">{ownerError.message}</p>}
             </div>
             {canRemove && (
-                <div className="flex flex-col gap-2 min-w-44">
+                <div className="flex flex-col gap-2 min-w-44 flex-grow">
                     <Button
                         type="button"
                         className="bg-red-500 text-white p-2 rounded-md cursor-pointer flex items-center justify-center gap-2"
@@ -82,25 +84,27 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
 }
 
 export default function Home() {
+    const [isMounted, setIsMounted] = useState(false)
     const [isReady, setIsReady] = useState(false)
-    // const [draftName, setDraftName] = useLocalStorage<string>("draftName", "")
-    // const [roundCount, setRoundCount] = useLocalStorage<number>("roundCount", 1)
-    // const [teams, setTeams] = useLocalStorage<Team[]>("teams", [
-    //     { teamName: "", teamOwner: "" },
-    //     { teamName: "", teamOwner: "" },
-    // ])
-    const [draftName, setDraftName] = useState<string>("")
-    const [roundCount, setRoundCount] = useState<number>(5)
-    // const [teams, setTeams] = useState<Team[]>([
-    //     { teamName: "", teamOwner: "" },
-    //     { teamName: "", teamOwner: "" },
-    // ])
-    const [teams, setTeams] = useState<Team[]>([
-        { teamName: "Max's Team", teamOwner: "Max" },
-        { teamName: "Stephen's Team", teamOwner: "Stephen" },
-        { teamName: "David's Team", teamOwner: "David" },
-        { teamName: "Jeremy's Team", teamOwner: "Jeremy" },
-    ])
+    const [draftName, setDraftName] = useLocalStorage<string>("draftName", "", {
+        initializeWithValue: true,
+    })
+    const [roundTimer, setRoundTimer] = useLocalStorage<number>("roundTimer", 5, {
+        initializeWithValue: true,
+    })
+    const [roundCount, setRoundCount] = useLocalStorage<number>("roundCount", 5, {
+        initializeWithValue: true,
+    })
+    const [teams, setTeams] = useLocalStorage<Team[]>(
+        "teams",
+        [
+            { teamName: "", teamOwner: "" },
+            { teamName: "", teamOwner: "" },
+        ],
+        {
+            initializeWithValue: true,
+        }
+    )
 
     const {
         register,
@@ -114,6 +118,7 @@ export default function Home() {
             roundCount,
             teams,
             name: draftName,
+            roundTimer,
         },
         resolver: zodResolver(draftSchema),
     })
@@ -135,12 +140,22 @@ export default function Home() {
         setTeams(data.teams)
         setDraftName(data.name)
         setRoundCount(data.roundCount)
+        setRoundTimer(data.roundTimer)
         setIsReady(true)
     }
 
     const roundCountWatch = watch("roundCount")
+    const roundTimerWatch = watch("roundTimer")
     const teamsWatch = watch("teams")
     const nameWatch = watch("name")
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    if (!isMounted) {
+        return <div>Loading...</div>
+    }
 
     if (isReady) {
         return (
@@ -149,6 +164,7 @@ export default function Home() {
                 roundCount={roundCountWatch}
                 name={nameWatch}
                 exit={() => setIsReady(false)}
+                timerLength={roundTimer * 60}
             />
         )
     }
@@ -156,7 +172,7 @@ export default function Home() {
     const hasErrors = Object.keys(errors).length > 0
 
     return (
-        <div className="flex flex-col items-start justify-center h-screen space-y-8 container mx-auto">
+        <div className="flex flex-col items-start justify-center h-screen space-y-8 container mx-auto p-10">
             <form
                 onSubmit={handleSubmit(startDraft)}
                 className="flex flex-col items-center justify-center space-y-8 w-full"
@@ -182,7 +198,7 @@ export default function Home() {
                         <FiUsers className="w-6 h-6" />
                         <h1 className="text-2xl font-bold">Draft Configuration</h1>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="name">Draft Name</Label>
                             <Input
@@ -190,32 +206,68 @@ export default function Home() {
                                 {...register("name")}
                             />
                         </div>
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="roundCount">Round Count</Label>
-                            <div className="flex flex-row items-center justify-start text-xl font-bold gap-4">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="cursor-pointer"
-                                    onClick={() =>
-                                        setValue("roundCount", Math.max(roundCountWatch - 1, 1))
-                                    }
-                                >
-                                    <BiMinus className="w-4 h-4" />
-                                </Button>
-                                <div className="py-2 px-5 rounded-2xl bg-gray-200 dark:bg-gray-800">
-                                    {roundCountWatch}
+                        <div className="flex flex-row items-center gap-8 w-full flex-wrap justify-center lg:justify-start">
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="roundCount">Round Count</Label>
+                                <div className="flex flex-row items-center justify-start text-xl font-bold gap-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                            setValue("roundCount", Math.max(roundCountWatch - 1, 1))
+                                        }
+                                    >
+                                        <BiMinus className="w-4 h-4" />
+                                    </Button>
+                                    <div className="py-2 px-5 rounded-2xl bg-gray-200 dark:bg-gray-700">
+                                        {roundCountWatch}
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                            setValue(
+                                                "roundCount",
+                                                Math.min(roundCountWatch + 1, 100)
+                                            )
+                                        }
+                                    >
+                                        +
+                                    </Button>
                                 </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="cursor-pointer"
-                                    onClick={() =>
-                                        setValue("roundCount", Math.min(roundCountWatch + 1, 100))
-                                    }
-                                >
-                                    +
-                                </Button>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="roundCount">Round Timer</Label>
+                                <div className="flex flex-row items-center justify-start text-xl font-bold gap-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                            setValue("roundTimer", Math.max(roundTimerWatch - 1, 1))
+                                        }
+                                    >
+                                        <BiMinus className="w-4 h-4" />
+                                    </Button>
+                                    <div className="py-2 px-5 rounded-2xl bg-gray-200 dark:bg-gray-700">
+                                        {roundTimerWatch}:00
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                            setValue(
+                                                "roundTimer",
+                                                Math.min(roundTimerWatch + 1, 100)
+                                            )
+                                        }
+                                    >
+                                        +
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -228,7 +280,7 @@ export default function Home() {
                         </div>
                         <Button
                             type="button"
-                            className="bg-blue-500 text-white p-2 rounded-md px-3 font-bold cursor-pointer flex items-center justify-center gap-2"
+                            className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white shadow-lg"
                             onClick={addTeam}
                         >
                             <BiPlus className="w-4 h-4" />
@@ -251,10 +303,10 @@ export default function Home() {
                 <Button
                     type="submit"
                     size="lg"
-                    className="text-lg bg-green-600 text-white p-2 rounded-md px-5 py-3 font-bold cursor-pointer flex items-center justify-center gap-2"
+                    className="text-lg bg-green-600 text-white rounded-md px-5 py-6 font-bold cursor-pointer flex items-center justify-center gap-2"
                 >
-                    <BiPlay className="w-6 h-6" />
-                    <span>Start Draft</span>
+                    <BiPlay className="w-8 min-w-8 h-8 min-h-8" />
+                    <span className="text-xl">Start Draft</span>
                 </Button>
             </form>
         </div>

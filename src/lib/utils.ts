@@ -16,6 +16,13 @@ const borderColors = [
     "border-yellow-500",
     "border-purple-500",
 ]
+const textColors = [
+    "text-red-500",
+    "text-blue-500",
+    "text-green-500",
+    "text-yellow-500",
+    "text-purple-500",
+]
 
 export const getTeamFadedColor = (index: number) => {
     return fadedColors[index % fadedColors.length]
@@ -23,6 +30,10 @@ export const getTeamFadedColor = (index: number) => {
 
 export const getTeamColor = (index: number) => {
     return colors[index % colors.length]
+}
+
+export const getTeamTextColor = (index: number) => {
+    return textColors[index % textColors.length]
 }
 
 export const getTeamBorderColor = (index: number) => {

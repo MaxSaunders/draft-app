@@ -21,7 +21,14 @@ import { GiTrophy } from "react-icons/gi"
 import { BiExit, BiImage } from "react-icons/bi"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn, formatTime, getTeamBorderColor, getTeamColor, getTeamFadedColor } from "@/lib/utils"
+import {
+    cn,
+    formatTime,
+    getTeamBorderColor,
+    getTeamColor,
+    getTeamFadedColor,
+    getTeamTextColor,
+} from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 import ImageCell from "./imageCell"
@@ -48,18 +55,18 @@ const TeamCard = ({
         <Card
             key={teamIndex}
             className={cn(
-                "relative overflow-hidden border-2 hover:shadow-lg transition-shadow w-full pt-6 gap-4",
+                "relative overflow-hidden border-2 hover:shadow-lg transition-shadow w-full pt-4 gap-4",
                 currentPickTeamIndex === teamIndex &&
                     `border-2 ${getTeamBorderColor(teamIndex)} shadow-lg`
             )}
         >
-            {currentPickTeamIndex === teamIndex && (
+            {/* {currentPickTeamIndex === teamIndex && (
                 <div
                     className={`absolute top-0 left-0 justify-center flex w-full font-bold text-blue-400 uppercase`}
                 >
                     Current Pick
                 </div>
-            )}
+            )} */}
             <div className={`h-2 ${getTeamColor(teamIndex)}`} />
             <CardHeader>
                 <CardTitle className="text-xl text-slate-800 dark:text-slate-200">
@@ -84,7 +91,7 @@ type GridProps = {
     roundCount: number
     name: string
     exit: () => void
-    timerLength: number
+    timerLength?: number
 }
 
 const Grid = ({ teams, roundCount, name, exit, timerLength = 300 }: GridProps) => {
@@ -124,7 +131,7 @@ const Grid = ({ teams, roundCount, name, exit, timerLength = 300 }: GridProps) =
             {/* Header */}
             <div className="my-4 flex flex-col items-center justify-center space-y-4 w-full">
                 <div className="flex flex-row items-center justify-around gap-4 w-full relative">
-                    <h1 className="text-4xl font-bold">{name}</h1>
+                    <h1 className="text-4xl font-bold font-sans">{name}</h1>
                     <div className="flex items-center gap-2 absolute right-20">
                         <ThemeToggle />
                         <button
@@ -136,7 +143,6 @@ const Grid = ({ teams, roundCount, name, exit, timerLength = 300 }: GridProps) =
                         </button>
                     </div>
                 </div>
-                <h2 className="text-xl dark:text-gray-200">Draft your team</h2>
                 <div className="rounded-full border border-gray-300 dark:border-gray-600 p-2 px-4 flex flex-row items-center justify-center gap-2">
                     <GiTrophy className="w-5 h-5" />
                     <span className="font-bold">
@@ -152,12 +158,25 @@ const Grid = ({ teams, roundCount, name, exit, timerLength = 300 }: GridProps) =
                         <Users className="w-6 h-6" />
                         Draft Teams
                     </h2>
-                    <Button className="bg-blue-500 text-white text-2xl px-6 py-4 rounded-xl cursor-pointer flex flex-row items-center gap-2">
-                        <div>
-                            <Timer className="w-8 h-8" />
+                    <div className="flex flex-row items-end gap-6">
+                        <div className="flex flex-row items-end justify-end gap-1 text-2xl font-bold">
+                            <span>Current Pick:</span>
+                            <span className={cn(getTeamTextColor(currentPickTeamIndex))}>
+                                {teams[currentPickTeamIndex]?.teamName}
+                            </span>
                         </div>
-                        <div>{formatTime(timer)}</div>
-                    </Button>
+                        <div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400 justify-center flex">
+                                Round Timer
+                            </div>
+                            <Button className="bg-blue-300/30 border-blue-800 border-2 text-black dark:text-white text-2xl px-6 py-4 rounded-xl cursor-pointer flex flex-row items-center gap-2">
+                                <div className="flex flex-row items-center gap-2">
+                                    <Timer className="min-w-5 min-h-5" />
+                                </div>
+                                <div className="font-mono">{formatTime(timer)}</div>
+                            </Button>
+                        </div>
+                    </div>
                 </div>
                 <div className={cn(`w-full flex flex-row items-center justify-center gap-4`)}>
                     {teams.map((team, index) => (

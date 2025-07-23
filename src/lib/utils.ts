@@ -49,3 +49,15 @@ export const formatTime = (seconds: number) => {
     const remainingSeconds = seconds % 60
     return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`
 }
+
+export const getRandomNumber = (min: number, max: number, exclude: number[] = []): number => {
+    if (min > max || max - min < exclude.length) {
+        return -1
+    }
+
+    const number = Math.floor(Math.random() * (max - min + 1)) + min
+    if (exclude.includes(number)) {
+        return getRandomNumber(min, max, exclude)
+    }
+    return number
+}

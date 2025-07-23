@@ -19,6 +19,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import OrderPicking from "./components/orderPicking"
 
 const teamSchema = z.object({
     teamName: z.string().min(1, { message: "Team name is required" }),
@@ -68,7 +69,7 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
                 {ownerError && <p className="text-red-500">{ownerError.message}</p>}
             </div>
             {canRemove && (
-                <div className="flex flex-col gap-2 min-w-44 flex-grow">
+                <div className="flex flex-col gap-2 min-w-44 w-min-fit">
                     <Button
                         type="button"
                         className="bg-red-500 text-white p-2 rounded-md cursor-pointer flex items-center justify-center gap-2"
@@ -85,7 +86,9 @@ const TeamRow = ({ register, index, removeTeam, errors, canRemove }: TeamRowProp
 
 export default function Home() {
     const [isMounted, setIsMounted] = useState(false)
-    const [isReady, setIsReady] = useState(false)
+    const [status, setStatus] = useState<"not-started" | "order-picking" | "drafting" | "drafted">(
+        "not-started"
+    )
     const [draftName, setDraftName] = useLocalStorage<string>("draftName", "", {
         initializeWithValue: true,
     })
@@ -141,7 +144,7 @@ export default function Home() {
         setDraftName(data.name)
         setRoundCount(data.roundCount)
         setRoundTimer(data.roundTimer)
-        setIsReady(true)
+        setStatus("order-picking")
     }
 
     const roundCountWatch = watch("roundCount")
@@ -157,13 +160,26 @@ export default function Home() {
         return <div>Loading...</div>
     }
 
-    if (isReady) {
+    if (status === "order-picking") {
         return (
-            <Grid
+            <OrderPicking
                 teams={teamsWatch}
                 roundCount={roundCountWatch}
                 name={nameWatch}
-                exit={() => setIsReady(false)}
+                exit={() => setStatus("not-started")}
+                setOrder={setTeams}
+                startDraft={() => setStatus("drafting")}
+            />
+        )
+    }
+
+    if (status === "drafting") {
+        return (
+            <Grid
+                teams={teams}
+                roundCount={roundCountWatch}
+                name={nameWatch}
+                exit={() => setStatus("not-started")}
                 timerLength={roundTimer * 60}
             />
         )
